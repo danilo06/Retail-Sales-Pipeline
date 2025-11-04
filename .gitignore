@@ -1,0 +1,11 @@
+mysql/data
+mysql/files
+postgres/data
+postgres/files
+airflow/dags/__pycache__
+airflow/logs
+airflow/plugins
+
+*.swp
+*.tmp
+*.DS_Store

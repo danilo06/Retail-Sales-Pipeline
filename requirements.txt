@@ -1,0 +1,6 @@
+mysql-connector-python
+requests
+psycopg2
+pandas
+sqlalchemy
+apache-airflow
