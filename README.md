@@ -32,6 +32,15 @@ ETLPROJECT/
 │  
 ├── airflow/                   # Airflow environment  
 │   ├── dags/                  # ETL DAGs definition  
+│   │   ├── helpers/           # Database helper utilities  
+│   │   │   └── db_helper.py  # Unified database helper (MySQL & PostgreSQL)  
+│   │   ├── scripts/           # Python automation and configs  
+│   │   │   ├── automation.py  # Main automation logic  
+│   │   │   ├── mysql_config.py # MySQL connection and settings  
+│   │   │   └── postgres_config.py # PostgreSQL connection and settings  
+│   │   ├── processors/        # Data processing classes  
+│   │   │   └── web_log_processor.py # Web log processing logic  
+│   │   └── process_web_log.py # Airflow DAG for web log processing  
 │   ├── logs/                  # Airflow execution logs  
 │   └── plugins/               # Custom Airflow plugins  
 │  
@@ -42,11 +51,6 @@ ETLPROJECT/
 ├── postgres/  
 │   ├── data/                  # PostgreSQL data or exports  
 │   └── files/                 # Initialization or schema files  
-│  
-├── scripts/                   # Python automation and configs  
-│   ├── automation.py          # Main automation logic  
-│   ├── mysql_config.py        # MySQL connection and settings  
-│   └── postgres_config.py     # PostgreSQL connection and settings  
 │  
 ├── .env                       # Environment variables (DB credentials, etc.)  
 ├── .gitignore                 # Files and folders to exclude from Git  
@@ -59,16 +63,16 @@ ETLPROJECT/
 ## Project stages
 
 For the initial stage, the process starts by running the setup.sh script. This script performs the initial configuration to create the MySQL and PostgreSQL instances in Docker.  
-- In mysql_config.py, the SQL schema file is downloaded to create the MySQL database (sales) and populate the table (sales_data).  
-- In postgres_config.py, the CSV file is downloaded and used to create the table (sales_data) within the PostgreSQL database (sales). The same CSV file is used to populate the PostgreSQL data warehouse.  
-- In automation.py, new records in MySQL table are identified by comparing them with the initial CSV file. Some new records may have missing information, specifically in the price and timestamp columns.
+- In `airflow/dags/scripts/mysql_config.py`, the SQL schema file is downloaded to create the MySQL database (sales) and populate the table (sales_data).  
+- In `airflow/dags/scripts/postgres_config.py`, the CSV file is downloaded and used to create the table (sales_data) within the PostgreSQL database (sales). The same CSV file is used to populate the PostgreSQL data warehouse.  
+- In `airflow/dags/scripts/automation.py`, new records in MySQL table are identified by comparing them with the initial CSV file. Some new records may have missing information, specifically in the price and timestamp columns.
   * To populate the timestamp column, the script automatically records the date and time when new records are loaded into the PostgreSQL database.  
   * For the price column, the script looks up existing records by matching Product IDs and fills in the missing values accordingly.
 
 As a result, every time the setup.sh script is executed, the datasets are updated, and any new records are automatically processed.
 
 For the final stage, the process starts by running the airflow.sh script. This script sets up the initial configuration to create the Apache Airflow instance in Docker.  
-Inside the "./airflow/files" directory, you can find the process_web_log.py script, which contains the DAG responsible for automating the workflow tasks.  
+The DAG configuration is defined in `airflow/dags/process_web_log.py`, which uses the `WebLogProcessor` class from `airflow/dags/processors/web_log_processor.py` to handle the processing logic.  
 - The first task extracts the IP addresses from the previously saved file "data.txt".  
 - The second task transforms the data by filtering out the IP address (198.46.149.143), keeping only the remaining records.  
 - The third task loads the transformed data into a compressed file named "weblog.tar".
